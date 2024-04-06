@@ -52,9 +52,9 @@ grub2-mkconfig -o /boot/grub2/grub.cfg
 rd.lvm.lv=VolGroup00/LogVol00 на rd.lvm.lv=vg_root/lv_root. Кроме того, с целью предупреждения проблем <br/> 
 с загрузкой системы, возникающих из-за работы системы безопасности SELinux, необходимо в той же<br/> 
 строке (linux16), где находится параметр rd.lvm.lv, задать параметр enforcing=0. Данный параметр переключает<br/>
-SELinux в режим permissive.<br/>
-7. Загрузка новой системы<br/>
-8. Удаление логического раздела исходной системы:
+SELinux в режим permissive. <br/>
+&ensp;&ensp;7. Загрузка новой системы <br/>
+&ensp;&ensp;8. Удаление логического раздела исходной системы:
 ```shell
 lvremove /dev/VolGroup00/LogVol00
 ```
@@ -109,4 +109,65 @@ mount /dev/vg_var/lv_var /var
 ```shell
 echo "`blkid | grep var: | awk '{print $2}'` /var ext4 defaults 0 0" >> /etc/fstab
 ```
-
+19. Загрузка прежней системы <br/>
+&ensp;&ensp;20. Удаление временного логического раздела, группы разделов, физического раздела:
+```shell
+lvremove /dev/vg_root/lv_root
+vgremove /dev/vg_root
+pvremove /dev/sdb
+```
+20. Подготовка тома для /home и его монтирование в указанную точку:
+```shell
+lvcreate -n LogVol_Home -L 2G /dev/VolGroup0
+mkfs.xfs /dev/VolGroup00/LogVol_Home
+mount /dev/VolGroup00/LogVol_Home /mnt/
+cp -aR /home/* /mnt/
+rm -rf /home/*
+umount /mnt
+mount /dev/VolGroup00/LogVol_Home /home/
+```
+21. Внесение данных для автоматического монтирования /home в fstab:
+```shell
+echo "`blkid | grep Home: | awk '{print $2}'` /var xfs defaults 0 0" >> /etc/fstab
+```
+22. Создание группы файлов в /home:
+```shell
+touch /home/file{1..20}
+```
+23. Подготовка снапшота:
+```shell
+lvcreate -L 100MB -s -n home_snap dev/VolGroup00/LogVol_Home
+```
+24. Удаление файлов в /home:
+```shell
+rm -f /home/file{1..20}
+```
+25. Восстановление данных из снапшота:
+```shell
+umount /home
+lvconvert --merge /dev/VolGroup00/home_snap
+mount /home
+ls /home | sort
+file1
+file10
+file11
+file12
+file13
+file14
+file15
+file16
+file17
+file18
+file19
+file2
+file20
+file3
+file4
+file5
+file6
+file7
+file8
+file9
+vagrant
+```
+##### &ensp;&ensp; Более подробный ход решения задачи и вывод команд представлен в прилагающемся логе утилиты Script - course.txt. #####
