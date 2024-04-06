@@ -52,8 +52,8 @@ grub2-mkconfig -o /boot/grub2/grub.cfg
 rd.lvm.lv=VolGroup00/LogVol00 на rd.lvm.lv=vg_root/lv_root. Кроме того, с целью предупреждения проблем <br/> 
 с загрузкой системы, возникающих из-за работы системы безопасности SELinux, необходимо в той же<br/> 
 строке (linux16), где находится параметр rd.lvm.lv, задать параметр enforcing=0. Данный параметр переключает<br/>
-SELinux в режим permissive.
-7. Загрузка новой системы
+SELinux в режим permissive.<br/>
+7. Загрузка новой системы<br/>
 8. Удаление логического раздела исходной системы:
 ```shell
 lvremove /dev/VolGroup00/LogVol00
